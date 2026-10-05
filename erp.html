@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ART Connect — ERP transit & logistique (démo)</title>
+<meta name="theme-color" content="#14181f">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/erp.css">
+</head>
+<body>
+<div class="erp" id="erp">
+  <aside class="side" id="side">
+    <a class="side__brand" href="index.html" title="Retour au site"><span><img src="assets/img/logo.png" alt="ART"></span><div><b>ART Connect</b><small>ERP transit &amp; logistique</small></div></a>
+    <nav class="side__nav" id="menu">
+      <button data-m="dash" class="is-on"><i>▦</i>Tableau de bord</button>
+      <button data-m="dossiers"><i>▤</i>Dossiers de transit</button>
+      <button data-m="pipeline"><i>◫</i>Suivi des expéditions</button>
+      <button data-m="douane"><i>⚖</i>Douane</button>
+      <button data-m="flotte"><i>⛟</i>Flotte &amp; manutention</button>
+      <button data-m="entrepot"><i>▣</i>Entrepôt</button>
+      <button data-m="factures"><i>€</i>Facturation</button>
+      <button data-m="clients"><i>☺</i>Clients</button>
+      <button data-m="portail"><i>↗</i>Portail client</button>
+    </nav>
+    <div class="side__foot"><a href="index.html">← Retour au site</a><button id="reset">Réinitialiser la démo</button></div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <button class="menu-btn" id="menu-btn" aria-label="Menu">☰</button>
+      <h1 id="title">Tableau de bord</h1>
+      <div class="top__right"><span class="demo-pill">Démo · données fictives</span><span class="avatar" title="Utilisateur démo">PG</span></div>
+    </header>
+    <section class="content" id="content"></section>
+  </div>
+</div>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="drawer__bg" data-close></div>
+  <aside class="drawer__panel" id="drawer-panel"></aside>
+</div>
+<div class="modal" id="modal" hidden>
+  <div class="drawer__bg" data-close></div>
+  <form class="modal__box" id="modal-form"></form>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="assets/js/erp.js"></script>
+</body>
+</html>
