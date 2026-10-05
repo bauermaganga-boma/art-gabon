@@ -96,7 +96,7 @@ tbody tr.click{cursor:pointer}tbody tr.click:hover td{background:#fafbfc}
 .pc{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}.pc img{height:120px;width:100%;object-fit:cover}.pc div{padding:16px}.pc small{color:var(--muted)}
 .note{margin-top:16px;color:var(--muted);font-size:.84rem}
 
-@media (max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}}
+@media (max-width:1100px){.g4,.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
 @media (max-width:860px){
   .erp{grid-template-columns:1fr}
   .side{position:fixed;left:0;top:0;z-index:40;width:260px;transform:translateX(-100%);transition:.25s}

@@ -67,9 +67,31 @@
     log: ['Dossier ART-26-0433 ouvert (Paris → Port-Gentil)', 'ART-26-0409 : droits liquidés', 'ART-26-0405 : navire à quai à Libreville', 'Facture F-26-0187 payée par Société Démo Pétrole']
   };
 
+  SEED.pseq = 32; SEED.sseq = 19;
+  SEED.po = [
+    { no: 'BC-26-0032', c: 2, cref: 'EA-PO-1187', q: 'D-26-0063', doss: '', lines: [{ d: 'Fret maritime', q: 1, pu: 3200000 }, { d: 'Dédouanement', q: 1, pu: 850000 }, { d: 'Transport routier jusqu\'au site', q: 1, pu: 600000 }], st: 0, date: '04/10' },
+    { no: 'BC-26-0031', c: 4, cref: 'PO-BOR-7741', q: 'D-26-0062', doss: 'ART-26-0405', lines: [{ d: 'Fret maritime', q: 1, pu: 2600000 }, { d: 'Dédouanement', q: 1, pu: 700000 }], st: 1, date: '01/10' },
+    { no: 'BC-26-0030', c: 5, cref: 'DF/2209', q: 'D-26-0061', doss: 'ART-26-0409', lines: [{ d: 'Fret maritime', q: 1, pu: 4100000 }, { d: 'Manutention et levage', q: 1, pu: 1200000 }], st: 2, date: '28/09' },
+    { no: 'BC-26-0029', c: 1, cref: 'SDP-4410', q: '', doss: 'ART-26-0412', lines: [{ d: 'Transport tubes de forage Houston → Port-Gentil', q: 1, pu: 6400000 }], st: 1, date: '24/09' }
+  ];
+  SEED.sup = [
+    { id: 1, name: 'Atlantic Lines (démo)', type: 'Armateur', city: 'Anvers' },
+    { id: 2, name: 'Ogooué Trans (démo)', type: 'Transporteur routier', city: 'Port-Gentil' },
+    { id: 3, name: 'Air Cargo Partners (démo)', type: 'Agent aérien', city: 'Paris' },
+    { id: 4, name: 'Levage Océan (démo)', type: 'Levage et grutage', city: 'Port-Gentil' },
+    { id: 5, name: 'Assurance Marine Gabon (démo)', type: 'Assurance transport', city: 'Libreville' }
+  ];
+  SEED.spo = [
+    { no: 'BF-26-0018', s: 1, doss: 'ART-26-0412', obj: 'Fret maritime Houston → Port-Gentil', amt: 4300000, st: 2, date: '24/09' },
+    { no: 'BF-26-0017', s: 2, doss: 'ART-26-0421', obj: 'Transport routier hors gabarit', amt: 1900000, st: 1, date: '03/10' },
+    { no: 'BF-26-0016', s: 4, doss: 'ART-26-0409', obj: 'Levage et déchargement tiges de forage', amt: 950000, st: 3, date: '05/10' },
+    { no: 'BF-26-0015', s: 3, doss: 'ART-26-0425', obj: 'Fret aérien Houston → Libreville', amt: 2100000, st: 2, date: '02/10' }
+  ];
+  var SPO_ST = ['Brouillon', 'Envoyée', 'Confirmée', 'Soldée'];
+  var supn = function (id) { var s = S.sup.filter(function (x) { return x.id === id; })[0]; return s ? s.name : '—'; };
   var navs = 0, S, view = 'dash', filt = { q: '', mode: '', step: '' };
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
-  function load() { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.dossiers && s.quotes) return s; } catch (e) {} return clone(SEED); }
+  function load() { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.dossiers && s.quotes && s.po && s.spo) return s; } catch (e) {} return clone(SEED); }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   S = load();
   var nf = function (n) { return Number(n).toLocaleString('fr-FR'); };
@@ -135,6 +157,7 @@
       '<div class="rings">' + ring(94, 'Livraisons dans les délais') + ring(fleetUse, 'Utilisation de la flotte', '#14181f') + ring(occ, 'Occupation de l\'entrepôt', '#8d95a3') + ring(invoiced, 'Dossiers facturés', '#16a34a') + '</div>' +
       '<div class="grid g2 mt"><div class="card"><h3>Tonnage traité <small style="font-weight:400;color:var(--muted)">tonnes · données fictives</small></h3>' + lineChart(tonSeries, MONTHS, 't') + '</div>' +
       '<div class="card"><h3>Chiffre d\'affaires par client <small style="font-weight:400;color:var(--muted)">M FCFA</small></h3>' + hbars(byClient, function (v) { return nf(Math.round(v * 10) / 10); }) + '</div></div>' +
+      '<div class="card mt"><h3>Parcours commercial <small style="font-weight:400;color:var(--muted)">du devis à l\'encaissement</small></h3>' + hbars([['Devis émis', S.quotes.length], ['Devis acceptés', S.quotes.filter(function (q) { return q.st === 2; }).length], ['Bons de commande', S.po.length], ['Dossiers ouverts', D.length], ['Factures émises', S.inv.length], ['Factures payées', S.inv.filter(function (i) { return i.st === 2; }).length]], function (v) { return v; }) + '</div>' +
       '<div class="grid g2 mt"><div class="card"><h3>Activité récente</h3><ul class="feed">' + S.log.map(function (l) { return '<li><i></i><div>' + esc(l) + '</div></li>'; }).join('') + '</ul></div>' +
       '<div class="card"><h3>Alertes</h3>' + late.map(function (d) { return '<div class="alert">⚠️ <div><b>' + d.ref + '</b> arrivé, déclaration en douane à préparer.</div></div>'; }).join('') +
       S.stock.filter(function (s) { return s.days >= 7; }).map(function (s) { return '<div class="alert">📦 <div><b>' + esc(s.what) + '</b> en entrepôt depuis ' + s.days + ' jours.</div></div>'; }).join('') +
@@ -225,7 +248,50 @@
       '<p class="note">C\'est la même information que dans l\'outil de gestion, en lecture seule : le client suit ses expéditions et télécharge ses documents sans téléphoner. Les mises à jour faites par ART apparaissent ici instantanément.</p>';
   };
 
-  var TITLES = { dash: 'Tableau de bord', dossiers: 'Dossiers de transit', pipeline: 'Suivi des expéditions', devis: 'Devis', factures: 'Factures', douane: 'Douane', flotte: 'Flotte & manutention', entrepot: 'Entrepôt', clients: 'Clients', portail: 'Portail client' };
+  M.bc = function () {
+    var tab = filt.bc || 'clients';
+    var head = '<div class="bar"><div class="chips" id="bc-tabs"><button data-bctab="clients"' + (tab === 'clients' ? ' class="is-on"' : '') + '>Commandes clients</button><button data-bctab="fournisseurs"' + (tab === 'fournisseurs' ? ' class="is-on"' : '') + '>Commandes fournisseurs</button></div><span class="sp"></span>';
+    if (tab === 'clients') {
+      var P = S.po;
+      return '<div class="sub-kpis">' + kpi('Bons de commande reçus', P.length) + kpi('À valider', P.filter(function (p) { return p.st === 0; }).length, '', true) + kpi('En exécution', P.filter(function (p) { return p.st === 1; }).length) + kpi('Montant total (TTC)', fcfa(sum(P, function (p) { return ttc(sum(p.lines, function (l) { return l.q * l.pu; })); }))) + '</div>' +
+        head + exportBtn('bc') + '<button class="btn" data-act="newpo">+ Enregistrer un bon de commande</button></div>' +
+        '<div class="tw"><table><thead><tr><th>Bon de commande</th><th>Réf. client</th><th>Client</th><th>Devis</th><th>Date</th><th class="num">Total TTC</th><th>Statut</th><th>Actions</th></tr></thead><tbody>' +
+        P.map(function (p) { return '<tr><td class="ref">' + p.no + '</td><td>' + esc(p.cref) + '</td><td>' + esc(cl(p.c).name) + '</td><td>' + (p.q || '—') + '</td><td>' + p.date + '</td><td class="num">' + fcfa(ttc(sum(p.lines, function (l) { return l.q * l.pu; }))) + '</td><td>' + tag(['Reçu', 'Validé', 'Exécuté'][p.st], ['', 't-warn', 't-ok'][p.st]) + '</td><td><div class="dacts"><button class="pdf" data-pdfx="bc|' + p.no + '">⬇ PDF</button>' + (p.st === 0 ? '<button class="btn btn--sm" data-pos="' + p.no + '">Valider → dossier</button>' : '') + (p.st === 1 ? '<button class="btn btn--ghost btn--sm" data-pos="' + p.no + '">Marquer exécuté</button>' : '') + '</div></td></tr>'; }).join('') + '</tbody></table></div>' +
+        '<p class="note">Parcours : devis accepté → bon de commande du client → dossier de transit → bon de livraison → facture.</p>';
+    }
+    var B = S.spo;
+    return '<div class="sub-kpis">' + kpi('Commandes émises', B.length) + kpi('En attente de confirmation', B.filter(function (b) { return b.st === 1; }).length, '', true) + kpi('Confirmées', B.filter(function (b) { return b.st === 2; }).length) + kpi('Engagé (HT)', fcfa(sum(B.filter(function (b) { return b.st < 3; }), function (b) { return b.amt; }))) + '</div>' +
+      head + exportBtn('bf') + '<button class="btn" data-act="newspo">+ Nouvelle commande fournisseur</button></div>' +
+      '<div class="tw"><table><thead><tr><th>Commande</th><th>Fournisseur</th><th>Dossier</th><th>Objet</th><th class="num">Montant HT</th><th>Statut</th><th>Actions</th></tr></thead><tbody>' +
+      B.map(function (b) { return '<tr><td class="ref">' + b.no + '</td><td>' + esc(supn(b.s)) + '</td><td>' + b.doss + '</td><td>' + esc(b.obj) + '</td><td class="num">' + fcfa(b.amt) + '</td><td>' + tag(SPO_ST[b.st], b.st === 3 ? 't-ok' : b.st === 2 ? 't-info' : b.st === 1 ? 't-warn' : '') + '</td><td><div class="dacts"><button class="pdf" data-pdfx="bf|' + b.no + '">⬇ PDF</button>' + (b.st < 3 ? '<button class="btn btn--sm" data-sps="' + b.no + '">' + ['Envoyer', 'Confirmée', 'Marquer soldée'][b.st] + '</button>' : '') + '</div></td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<p class="note">Commandes adressées aux armateurs, transporteurs, agents aériens et sociétés de levage qui travaillent avec ART.</p>';
+  };
+
+  M.documents = function () {
+    var D = S.dossiers;
+    return '<p class="note" style="margin:0 0 14px">Centre documentaire : générez en un clic les documents d\'un dossier, en PDF prêt à envoyer. Le bon de livraison est disponible dès l\'arrivée de la marchandise.</p>' +
+      '<div class="tw"><table><thead><tr><th>Dossier</th><th>Client</th><th>Marchandise</th><th>Étape</th><th>Documents</th></tr></thead><tbody>' +
+      D.map(function (d) { var inv = S.inv.filter(function (i) { return i.doss === d.ref; })[0]; return '<tr><td class="ref">' + d.ref + '</td><td>' + esc(cl(d.c).name) + '</td><td>' + esc(d.what) + '</td><td>' + stTag(d) + '</td><td><div class="dacts"><button class="pdf" data-pdfx="pf|' + d.ref + '">Proforma</button><button class="pdf" data-pdfx="pl|' + d.ref + '">Packing list</button>' + (d.step >= 3 ? '<button class="pdf" data-pdfx="bl|' + d.ref + '">Bon de livraison</button>' : '') + '<button class="pdf" data-pdfd="' + d.ref + '">Fiche dossier</button>' + (inv ? '<button class="pdf" data-pdfi="' + inv.no + '">Facture</button>' : '') + '</div></td></tr>'; }).join('') + '</tbody></table></div>';
+  };
+
+  M.fournisseurs = function () {
+    return '<div class="sub-kpis">' + kpi('Fournisseurs & sous-traitants', S.sup.length) + kpi('Commandes en cours', S.spo.filter(function (b) { return b.st < 3; }).length) + kpi('Engagé (HT)', fcfa(sum(S.spo.filter(function (b) { return b.st < 3; }), function (b) { return b.amt; }))) + kpi('Payé / soldé', fcfa(sum(S.spo.filter(function (b) { return b.st === 3; }), function (b) { return b.amt; }))) + '</div>' +
+      '<div class="tw"><table><thead><tr><th>Fournisseur</th><th>Activité</th><th>Ville</th><th class="num">Commandes</th><th class="num">Engagé HT</th></tr></thead><tbody>' +
+      S.sup.map(function (s) { var l = S.spo.filter(function (b) { return b.s === s.id; }); return '<tr><td class="ref">' + esc(s.name) + '</td><td>' + s.type + '</td><td>' + s.city + '</td><td class="num">' + l.length + '</td><td class="num">' + fcfa(sum(l.filter(function (b) { return b.st < 3; }), function (b) { return b.amt; })) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  };
+
+  M.offre = function () {
+    var mods = [['Dossiers de transit', 'Ouverture, étapes, historique, documents, par client et par bureau.'], ['Devis', 'Création, envoi, suivi des réponses, PDF aux couleurs d\'ART, conversion en dossier.'], ['Bons de commande', 'Commandes clients et commandes fournisseurs, avec PDF.'], ['Factures', 'Facturation depuis le dossier, TVA, suivi des encaissements, PDF.'], ['Documents', 'Proforma, packing list, bon de livraison, fiche dossier en un clic.'], ['Douane', 'Suivi des déclarations et estimation des droits et taxes.'], ['Flotte & manutention', 'Camions, chariots, grues : affectation aux dossiers, maintenance.'], ['Entrepôt', 'Stock par emplacement, durées de séjour, alertes.'], ['Fournisseurs', 'Armateurs, transporteurs, agents : commandes et engagements.'], ['Clients & portail', 'Fiches clients, encours, et portail de suivi pour vos clients.'], ['Tableau de bord', 'Courbes, indicateurs, alertes, parcours commercial.'], ['Exports', 'Excel/CSV des dossiers, factures, devis, stock.']];
+    var opts = [['Alertes automatiques', 'E-mail ou WhatsApp au client à chaque étape : arrivée, douane, livraison.'], ['Signature électronique', 'Devis, bons de commande et bons de livraison signés sur téléphone.'], ['Application chauffeurs', 'Preuve de livraison avec photo et signature depuis le terrain.'], ['Connexion aux outils existants', 'Reprise des données de suivi actuelles (dont Elyse Web) selon faisabilité.'], ['Assistant intelligent', 'Réponses aux clients à partir de leurs dossiers, 24 h/24.'], ['Version anglaise', 'Interface et documents bilingues FR / EN pour les clients de Houston.'], ['Droits et rôles', 'Accès par bureau et par fonction : exploitation, douane, comptabilité, direction.'], ['Sauvegardes et sécurité', 'Hébergement sécurisé, sauvegardes quotidiennes, journal des actions.']];
+    var card = function (x) { return '<div class="card"><h3 style="margin-bottom:6px">' + x[0] + '</h3><p style="color:var(--muted);font-size:.88rem">' + x[1] + '</p></div>'; };
+    return '<div class="card" style="border-left:4px solid var(--acc)"><h3>Un outil de gestion complet pour ART</h3><p>De la demande de prix à l\'encaissement, une seule application pour les équipes de Port-Gentil et de Libreville : moins de ressaisies, des documents professionnels en un clic, un suivi clair pour la direction et pour les clients.</p></div>' +
+      '<h3 class="ph">Modules inclus</h3><div class="grid g3 stack">' + mods.map(card).join('') + '</div>' +
+      '<h3 class="ph">Options à la carte</h3><div class="grid g3 stack">' + opts.map(card).join('') + '</div>' +
+      '<h3 class="ph">Mise en place</h3><div class="grid g4" style="grid-template-columns:repeat(4,1fr)">' + [['1 · Cadrage', 'Atelier avec les équipes, reprise de vos modèles de documents.'], ['2 · Paramétrage', 'Vos clients, vos tarifs types, votre logo sur tous les PDF.'], ['3 · Pilote', 'Un bureau et quelques clients volontaires.'], ['4 · Déploiement', 'Formation et ouverture à tous les utilisateurs.']].map(function (x) { return '<div class="card"><h3 style="margin-bottom:6px">' + x[0] + '</h3><p style="color:var(--muted);font-size:.88rem">' + x[1] + '</p></div>'; }).join('') + '</div>' +
+      '<div class="card mt"><h3>À préciser avec ART</h3><p>Source des données de suivi, volume d\'utilisateurs, hébergement, modèles de documents existants, options retenues. Ces points fixent le calendrier et le budget : une proposition chiffrée est établie après un premier échange.</p></div>';
+  };
+
+  var TITLES = { dash: 'Tableau de bord', dossiers: 'Dossiers de transit', pipeline: 'Suivi des expéditions', devis: 'Devis', bc: 'Bons de commande', documents: 'Documents', fournisseurs: 'Fournisseurs', offre: 'Notre offre', factures: 'Factures', douane: 'Douane', flotte: 'Flotte & manutention', entrepot: 'Entrepôt', clients: 'Clients', portail: 'Portail client' };
   function render() {
     $('#content').innerHTML = M[view]();
     $('#title').textContent = TITLES[view];
@@ -267,18 +333,19 @@
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 66, 76); (o.partyLines || []).forEach(function (t, i) { doc.text(t, m + 4, y + 18.5 + i * 4.2); });
     y += 34;
     doc.setFillColor(242, 106, 27); doc.rect(m, y, W - 2 * m, 8, 'F'); doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-    doc.text('Désignation', m + 3, y + 5.4); doc.text('Qté', 128, y + 5.4, { align: 'right' }); doc.text('Prix unitaire', 158, y + 5.4, { align: 'right' }); doc.text('Total HT', W - m - 3, y + 5.4, { align: 'right' });
+    doc.text('Désignation', m + 3, y + 5.4); doc.text('Qté', 128, y + 5.4, { align: 'right' }); if (o.noPrice) { doc.text('Observations', W - m - 3, y + 5.4, { align: 'right' }); } else { doc.text('Prix unitaire', 158, y + 5.4, { align: 'right' }); doc.text('Total HT', W - m - 3, y + 5.4, { align: 'right' }); }
     y += 8; doc.setFont('helvetica', 'normal'); doc.setTextColor(30, 36, 46);
     o.lines.forEach(function (l, i) {
       if (i % 2) { doc.setFillColor(250, 249, 247); doc.rect(m, y, W - 2 * m, 8, 'F'); }
-      var t = doc.splitTextToSize(l.d, 96)[0]; doc.text(t, m + 3, y + 5.4); doc.text(String(l.q), 128, y + 5.4, { align: 'right' }); doc.text(pdfn(l.pu), 158, y + 5.4, { align: 'right' }); doc.text(pdfn(l.q * l.pu), W - m - 3, y + 5.4, { align: 'right' }); y += 8;
+      var t = doc.splitTextToSize(l.d, 96)[0]; doc.text(t, m + 3, y + 5.4); doc.text(String(l.q), 128, y + 5.4, { align: 'right' }); if (o.noPrice) { doc.text(String(l.n || ''), W - m - 3, y + 5.4, { align: 'right' }); } else { doc.text(pdfn(l.pu), 158, y + 5.4, { align: 'right' }); doc.text(pdfn(l.q * l.pu), W - m - 3, y + 5.4, { align: 'right' }); } y += 8;
     });
     doc.setDrawColor(225, 228, 233); doc.setLineWidth(0.3); doc.line(m, y, W - m, y);
     var ht = sum(o.lines, function (l) { return l.q * l.pu; }), tv = Math.round(ht * TVA);
     y += 8; var row = function (a, b, bold) { doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(bold ? 12 : 10); doc.setTextColor(20, 24, 31); doc.text(a, 128, y, { align: 'right' }); doc.text(b, W - m - 3, y, { align: 'right' }); y += bold ? 8 : 6; };
-    row('Total HT', pdfn(ht) + ' FCFA'); row('TVA 18 %', pdfn(tv) + ' FCFA'); doc.setDrawColor(242, 106, 27); doc.setLineWidth(0.6); doc.line(98, y - 3.5, W - m, y - 3.5); y += 1; row('Total TTC', pdfn(ht + tv) + ' FCFA', true);
+    if (!o.noPrice) { row('Total HT', pdfn(ht) + ' FCFA'); row('TVA 18 %', pdfn(tv) + ' FCFA'); doc.setDrawColor(242, 106, 27); doc.setLineWidth(0.6); doc.line(98, y - 3.5, W - m, y - 3.5); y += 1; row('Total TTC', pdfn(ht + tv) + ' FCFA', true); }
     y += 8; doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90, 98, 112);
     doc.splitTextToSize(o.notes, W - 2 * m).forEach(function (t) { doc.text(t, m, y); y += 4.6; });
+    if (o.sign) { var y2 = Math.max(y + 10, 205); doc.setDrawColor(200, 205, 212); doc.setLineWidth(0.3); doc.rect(m, y2, 82, 34); doc.rect(W - m - 82, y2, 82, 34); doc.setFontSize(8.5); doc.setTextColor(105, 115, 130); doc.text(o.sign[0], m + 3, y2 + 5); doc.text(o.sign[1], W - m - 79, y2 + 5); doc.text('Nom, date et signature', m + 3, y2 + 31); doc.text('Nom, date et signature', W - m - 79, y2 + 31); }
     doc.setFontSize(7.5); doc.setTextColor(150, 157, 168); doc.text('Document de démonstration généré par l\'outil de gestion ART — données fictives, sans valeur contractuelle.', W / 2, 287, { align: 'center' });
     doc.save(o.file); toast('PDF téléchargé : ' + o.file);
   }
@@ -294,12 +361,24 @@
     var d = dos(ref), c = cl(d.c);
     makePDF({ title: 'FICHE DOSSIER', no: d.ref, file: 'Dossier-' + d.ref + '.pdf', meta: [['Mode', d.mode], ['Trajet', d.from + ' → ' + d.to], ['Poids', d.w], ['Statut', STEPS[d.step]]], partyLabel: 'CLIENT', party: c.name, partyLines: [c.contact, c.city + ', Gabon'], lines: [{ d: d.what, q: 1, pu: d.val }], notes: 'Historique : ' + d.ev.join(' | ') });
   }
+  function pdfx(kind, ref) {
+    var d, c;
+    if (kind === 'bc') { var p = S.po.filter(function (x) { return x.no === ref; })[0]; c = cl(p.c); return makePDF({ title: 'BON DE COMMANDE', no: p.no, file: 'Bon-de-commande-' + p.no + '.pdf', meta: [['Date', p.date + '/2026'], ['Réf. client', p.cref], ['Devis', p.q || '—'], ['Dossier', p.doss || 'à créer']], partyLabel: 'CLIENT', party: c.name, partyLines: [c.contact, c.city + ', Gabon'], lines: p.lines, notes: 'Bon de commande client enregistré par ART. Conditions : selon devis accepté, paiement à 30 jours.' }); }
+    if (kind === 'bf') { var b = S.spo.filter(function (x) { return x.no === ref; })[0], s = S.sup.filter(function (x) { return x.id === b.s; })[0]; return makePDF({ title: 'COMMANDE FOURNISSEUR', no: b.no, file: 'Commande-fournisseur-' + b.no + '.pdf', meta: [['Date', b.date + '/2026'], ['Dossier', b.doss], ['Activité', s.type], ['Statut', SPO_ST[b.st]]], partyLabel: 'FOURNISSEUR', party: s.name, partyLines: [s.type, s.city], lines: [{ d: b.obj, q: 1, pu: b.amt }], notes: 'Merci de confirmer la prise en charge et les délais par retour d\'e-mail en rappelant la référence ' + b.no + '.' }); }
+    d = dos(ref); c = cl(d.c);
+    var common = { party: c.name, partyLines: [c.contact, c.city + ', Gabon'], meta: [['Dossier', d.ref], ['Trajet', d.from + ' → ' + d.to], ['Mode', d.mode], ['Date', today()]] };
+    if (kind === 'bl') return makePDF(Object.assign({ title: 'BON DE LIVRAISON', no: 'BL-26-' + d.ref.slice(-4), file: 'Bon-de-livraison-' + d.ref + '.pdf', partyLabel: 'LIVRÉ À', noPrice: true, sign: ['Remis par ART', 'Reçu par le client'], lines: [{ d: d.what, q: 1, n: d.w }, { d: 'Colis reçus en bon état apparent', q: 1, n: 'Réserves : ______' }], notes: 'Le client reconnaît avoir reçu la marchandise ci-dessus. Toute réserve doit être notée à la livraison.' }, common));
+    if (kind === 'pl') return makePDF(Object.assign({ title: 'PACKING LIST', no: 'PL-26-' + d.ref.slice(-4), file: 'Packing-list-' + d.ref + '.pdf', partyLabel: 'DESTINATAIRE', noPrice: true, lines: [{ d: d.what, q: 1, n: 'Poids : ' + d.w }], notes: 'Liste de colisage établie pour le dossier ' + d.ref + '. Détail des colis à compléter à la réception.' }, common));
+    if (kind === 'pf') return makePDF(Object.assign({ title: 'FACTURE PROFORMA', no: 'PF-26-' + d.ref.slice(-4), file: 'Proforma-' + d.ref + '.pdf', partyLabel: 'ADRESSÉE À', lines: invLines({ doss: d.ref, amt: Math.round(d.val * 0.55) }), notes: 'Document non comptable, valable pour les formalités de douane et la demande de règlement préalable.' }, common));
+  }
   function csv(what) {
     var rows, head;
     if (what === 'dossiers') { head = ['Référence', 'Client', 'Marchandise', 'Origine', 'Destination', 'Mode', 'Étape', 'ETA', 'Poids']; rows = S.dossiers.map(function (d) { return [d.ref, cl(d.c).name, d.what, d.from, d.to, d.mode, STEPS[d.step], d.eta, d.w]; }); }
     if (what === 'factures') { head = ['Facture', 'Dossier', 'Client', 'Date', 'HT', 'TTC', 'Statut']; rows = S.inv.map(function (i) { return [i.no, i.doss, cl(i.c).name, i.date, i.amt, ttc(i.amt), INV_ST[i.st]]; }); }
     if (what === 'devis') { head = ['Devis', 'Client', 'Objet', 'Date', 'HT', 'TTC', 'Statut']; rows = S.quotes.map(function (q) { return [q.no, cl(q.c).name, q.obj, q.date, qHT(q), ttc(qHT(q)), QUO_ST[q.st]]; }); }
     if (what === 'stock') { head = ['Dossier', 'Désignation', 'Emplacement', 'Quantité', 'Jours']; rows = S.stock.map(function (s) { return [s.doss, s.what, s.loc, s.qty, s.days]; }); }
+    if (what === 'bc') { head = ['Bon de commande', 'Réf. client', 'Client', 'Devis', 'Date', 'TTC', 'Statut']; rows = S.po.map(function (p) { return [p.no, p.cref, cl(p.c).name, p.q, p.date, ttc(sum(p.lines, function (l) { return l.q * l.pu; })), ['Reçu', 'Validé', 'Exécuté'][p.st]]; }); }
+    if (what === 'bf') { head = ['Commande', 'Fournisseur', 'Dossier', 'Objet', 'Montant HT', 'Statut']; rows = S.spo.map(function (b) { return [b.no, supn(b.s), b.doss, b.obj, b.amt, SPO_ST[b.st]]; }); }
     var text = '﻿' + [head].concat(rows).map(function (r) { return r.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(';'); }).join('\r\n');
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' })); a.download = 'ART-' + what + '.csv'; a.click(); toast('Export téléchargé : ART-' + what + '.csv');
   }
@@ -318,7 +397,7 @@
       '<div class="kv"><div><small>Client</small>' + esc(cl(d.c).name) + '</div><div><small>Mode</small>' + MODE[d.mode] + ' ' + d.mode + '</div><div><small>Marchandise</small>' + esc(d.what) + '</div><div><small>Poids</small>' + d.w + '</div><div><small>Trajet</small>' + esc(d.from) + ' → ' + esc(d.to) + '</div><div><small>ETA</small>' + d.eta + '</div></div>' +
       '<div class="dsec">Avancement</div><ul class="stepper">' + STEPS.map(function (s, i) { return '<li class="' + (i < d.step ? 'done' : i === d.step ? 'now' : 'todo') + '"><i></i>' + s + '</li>'; }).join('') + '</ul>' +
       '<div class="dsec">Documents</div><ul class="dl">' + docsOf(d).map(function (x) { return '<li><span>' + x[0] + '</span>' + (x[1] ? tag('Disponible', 't-ok') : tag('En attente', '')) + '</li>'; }).join('') +
-      '<li><span>Fiche dossier (PDF)</span><button class="pdf" data-pdfd="' + d.ref + '">⬇ PDF</button></li>' + (inv ? '<li><span>Facture ' + inv.no + ' · ' + INV_ST[inv.st] + '</span><button class="pdf" data-pdfi="' + inv.no + '">⬇ PDF</button></li>' : '') + '</ul>' +
+      '<li><span>Fiche dossier (PDF)</span><button class="pdf" data-pdfd="' + d.ref + '">⬇ PDF</button></li><li><span>Facture proforma</span><button class="pdf" data-pdfx="pf|' + d.ref + '">⬇ PDF</button></li><li><span>Packing list</span><button class="pdf" data-pdfx="pl|' + d.ref + '">⬇ PDF</button></li>' + (d.step >= 3 ? '<li><span>Bon de livraison</span><button class="pdf" data-pdfx="bl|' + d.ref + '">⬇ PDF</button></li>' : '') + (inv ? '<li><span>Facture ' + inv.no + ' · ' + INV_ST[inv.st] + '</span><button class="pdf" data-pdfi="' + inv.no + '">⬇ PDF</button></li>' : '') + '</ul>' +
       '<div class="dsec">Historique</div><ul class="dl">' + d.ev.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') + '</ul>' +
       '<div class="dact">' + (d.step < 5 ? '<button class="btn" data-adv="' + d.ref + '">Avancer l\'étape →</button>' : '') + (inv ? '' : '<button class="btn btn--ghost" data-mkinv="' + d.ref + '">Créer la facture</button>') + '</div>';
     $('#drawer').hidden = false;
@@ -327,7 +406,7 @@
 
   /* ---------- Actions ---------- */
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-open],[data-adv],[data-cu],[data-free],[data-out],[data-inv],[data-mkinv],[data-act],[data-close],[data-m],[data-pdfi],[data-pdfq],[data-pdfd],[data-csv],[data-qs]');
+    var t = e.target.closest('[data-open],[data-adv],[data-cu],[data-free],[data-out],[data-inv],[data-mkinv],[data-act],[data-close],[data-m],[data-pdfx],[data-bctab],[data-pos],[data-sps],[data-pdfi],[data-pdfq],[data-pdfd],[data-csv],[data-qs]');
     if (!t) return;
     var D = t.dataset;
     if (D.close !== undefined) return closeAll();
@@ -354,6 +433,19 @@
       if (q.st === 2) { var ref = 'ART-26-0' + (++S.seq); S.dossiers.unshift({ ref: ref, c: q.c, what: q.obj.split(' — ')[0], from: q.from, to: q.to, mode: q.mode, step: 0, eta: '—', w: '—', val: qHT(q), cu: 0, ev: [short() + ' — Dossier ouvert depuis le devis ' + q.no] }); logAdd('Dossier ' + ref + ' ouvert depuis ' + q.no); toast('Devis accepté — dossier ' + ref + ' créé'); } else toast('Devis ' + q.no + ' — ' + QUO_ST[q.st]);
       save(); render(); return;
     }
+    if (D.pdfx) { var px = D.pdfx.split('|'); return pdfx(px[0], px[1]); }
+    if (D.bctab) { filt.bc = D.bctab; return render(); }
+    if (D.pos) {
+      var po = S.po.filter(function (v) { return v.no === D.pos; })[0];
+      if (po.st === 0) {
+        po.st = 1;
+        if (!po.doss) { var qq = S.quotes.filter(function (v) { return v.no === po.q; })[0] || {}; var rf = 'ART-26-0' + (++S.seq); S.dossiers.unshift({ ref: rf, c: po.c, what: (qq.obj || po.lines[0].d).split(' — ')[0], from: qq.from || '—', to: qq.to || '—', mode: qq.mode || 'Maritime', step: 0, eta: '—', w: '—', val: sum(po.lines, function (l) { return l.q * l.pu; }), cu: 0, ev: [short() + ' — Dossier ouvert depuis ' + po.no] }); po.doss = rf; logAdd('Dossier ' + rf + ' ouvert depuis ' + po.no); toast(po.no + ' validé — dossier ' + rf + ' créé'); } else toast(po.no + ' validé');
+      } else if (po.st === 1) { po.st = 2; toast(po.no + ' — exécuté'); }
+      save(); render(); return;
+    }
+    if (D.sps) { var sp = S.spo.filter(function (v) { return v.no === D.sps; })[0]; sp.st++; logAdd('Commande ' + sp.no + ' : ' + SPO_ST[sp.st].toLowerCase()); save(); toast(sp.no + ' — ' + SPO_ST[sp.st]); render(); return; }
+    if (D.act === 'newpo') return newPo();
+    if (D.act === 'newspo') return newSpo();
     if (D.act === 'new') return newDossier();
     if (D.act === 'newstock') return newStock();
     if (D.act === 'newquote') return newQuote();
@@ -379,6 +471,22 @@
         var no = 'D-26-' + ('0000' + (++S.qseq)).slice(-4);
         S.quotes.unshift({ no: no, c: Number(fd.get('c')), obj: fd.get('obj') + ' — ' + fd.get('from') + ' → ' + fd.get('to'), mode: fd.get('mode'), from: fd.get('from'), to: fd.get('to'), lines: lines, st: 0, date: short() });
         logAdd('Devis ' + no + ' créé'); save(); toast('Devis ' + no + ' créé — téléchargez le PDF'); render();
+      });
+  }
+  function newPo() {
+    modal('<h3>Enregistrer un bon de commande client</h3><label class="full">Client<select name="c">' + S.clients.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('') + '</select></label>' +
+      '<label>Référence du client<input name="cref" required placeholder="Ex. PO-2210"></label><label>Devis lié<select name="q"><option value="">Aucun</option>' + S.quotes.map(function (q) { return '<option>' + q.no + '</option>'; }).join('') + '</select></label>' +
+      '<div class="lines"><b style="font-size:.82rem">Prestations commandées (prix HT en FCFA)</b>' + [1, 2].map(function (n) { return '<div class="ln"><input name="d' + n + '" placeholder="Désignation ' + n + '"' + (n === 1 ? ' required' : '') + '><input name="q' + n + '" type="number" min="1" value="1"><input name="p' + n + '" type="number" min="0" placeholder="Prix HT"' + (n === 1 ? ' required' : '') + '></div>'; }).join('') + '</div>' + cancel, function (fd) {
+        var lines = []; [1, 2].forEach(function (n) { if (fd.get('d' + n) && Number(fd.get('p' + n)) > 0) lines.push({ d: fd.get('d' + n), q: Number(fd.get('q' + n)) || 1, pu: Number(fd.get('p' + n)) }); });
+        var no = 'BC-26-' + ('0000' + (++S.pseq)).slice(-4);
+        S.po.unshift({ no: no, c: Number(fd.get('c')), cref: fd.get('cref'), q: fd.get('q'), doss: '', lines: lines, st: 0, date: short() }); logAdd('Bon de commande ' + no + ' enregistré'); save(); toast(no + ' enregistré'); render();
+      });
+  }
+  function newSpo() {
+    modal('<h3>Nouvelle commande fournisseur</h3><label class="full">Fournisseur<select name="s">' + S.sup.map(function (s) { return '<option value="' + s.id + '">' + esc(s.name) + ' — ' + s.type + '</option>'; }).join('') + '</select></label>' +
+      '<label>Dossier<select name="doss">' + S.dossiers.map(function (d) { return '<option>' + d.ref + '</option>'; }).join('') + '</select></label><label>Montant HT (FCFA)<input name="amt" type="number" min="0" required></label><label class="full">Objet<input name="obj" required placeholder="Ex. Fret maritime Houston → Port-Gentil"></label>' + cancel, function (fd) {
+        var no = 'BF-26-' + ('0000' + (++S.sseq)).slice(-4);
+        S.spo.unshift({ no: no, s: Number(fd.get('s')), doss: fd.get('doss'), obj: fd.get('obj'), amt: Number(fd.get('amt')) || 0, st: 0, date: short() }); logAdd('Commande fournisseur ' + no + ' créée'); save(); toast(no + ' créée'); render();
       });
   }
   function newStock() {
