@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="assets/css/erp.css">
 </head>
 <body>
@@ -25,6 +26,8 @@
       <button data-m="documents"><i>⎙</i>Documents</button>
       <button data-m="douane"><i>⚖</i>Douane</button>
       <button data-m="flotte"><i>⛟</i>Flotte &amp; manutention</button>
+      <button data-m="planning"><i>▥</i>Planning</button>
+      <button data-m="carte"><i>⌖</i>Positions &amp; travaux</button>
       <button data-m="entrepot"><i>▣</i>Entrepôt</button>
       <button data-m="clients"><i>☺</i>Clients</button>
       <button data-m="fournisseurs"><i>⚓</i>Fournisseurs</button>
@@ -64,6 +67,7 @@
 </div>
 <div class="toast" id="toast" hidden></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="assets/js/erp.js"></script>
 </body>
 </html>

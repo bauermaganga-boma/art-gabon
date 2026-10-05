@@ -87,11 +87,30 @@
     { no: 'BF-26-0016', s: 4, doss: 'ART-26-0409', obj: 'Levage et déchargement tiges de forage', amt: 950000, st: 3, date: '05/10' },
     { no: 'BF-26-0015', s: 3, doss: 'ART-26-0425', obj: 'Fret aérien Houston → Libreville', amt: 2100000, st: 2, date: '02/10' }
   ];
+  var SITES = [['Port-Gentil — quai commercial', -0.7138, 8.7772], ['Port-Gentil — hangars ART', -0.7210, 8.7850], ['Cap Lopez — terminal pétrolier', -0.6230, 8.7040], ['Owendo — port', 0.2990, 9.5010], ['Libreville — dépôt ART', 0.4020, 9.4500], ['Base offshore (plateforme)', -1.1, 8.3]];
+  var POS0 = { 'T-01': [0.2988, 9.5008, 'Owendo — port', 22], 'T-02': [0.4018, 9.4496, 'Libreville — dépôt ART', 0], 'C-01': [-0.7136, 8.7770, 'Port-Gentil — quai commercial', 6], 'C-02': [-0.7208, 8.7848, 'Port-Gentil — hangars ART', 0], 'G-01': [-0.7182, 8.7831, 'Port-Gentil — atelier', 0], 'P-01': [0.4150, 9.4650, 'Libreville — bureaux ART', 0] };
+  SEED.fleet.forEach(function (f) { var p = POS0[f.id]; f.pos = { lat: p[0], lon: p[1], place: p[2], sp: p[3] }; });
+  SEED.ships = [{ ref: 'ART-26-0412', name: 'Navire Houston → Port-Gentil (démo)', lat: -0.9, lon: 7.3, sp: 12, st: 'En mer' }, { ref: 'ART-26-0405', name: 'Navire Dubaï → Libreville (démo)', lat: 0.2975, lon: 9.5036, sp: 0, st: 'À quai à Owendo' }];
+  SEED.jseq = 17;
+  SEED.jobs = [
+    { id: 'TR-014', title: 'Déchargement tiges de forage', site: 0, doss: 'ART-26-0409', equip: ['C-01'], st: 1, d0: -1, dur: 3 },
+    { id: 'TR-015', title: 'Chargement skid hors gabarit', site: 3, doss: 'ART-26-0421', equip: ['T-01'], st: 1, d0: 0, dur: 4 },
+    { id: 'TR-016', title: 'Levage structure acier', site: 1, doss: 'ART-26-0430', equip: ['C-02'], st: 0, d0: 3, dur: 2 },
+    { id: 'TR-017', title: 'Réception conteneurs base vie', site: 4, doss: 'ART-26-0405', equip: ['T-02'], st: 0, d0: 5, dur: 2 },
+    { id: 'TR-013', title: 'Transfert transformateurs', site: 4, doss: 'ART-26-0388', equip: [], st: 2, d0: -6, dur: 2 }
+  ];
+  SEED.calls = [
+    { ship: 'Navire Houston → Port-Gentil (démo)', ref: 'ART-26-0412', port: 'Port-Gentil', berth: 'Quai 2', eta: 9, etd: 11, ops: 'Déchargement tubes de forage' },
+    { ship: 'Navire Dubaï → Libreville (démo)', ref: 'ART-26-0405', port: 'Owendo', berth: 'Quai 5', eta: -1, etd: 1, ops: 'Déchargement matériel de chantier' },
+    { ship: 'Navire support offshore (démo)', ref: 'ART-26-0430', port: 'Port-Gentil', berth: 'Quai 1', eta: 4, etd: 5, ops: 'Chargement structure acier' },
+    { ship: 'Cargo Anvers → Libreville (démo)', ref: 'ART-26-0388', port: 'Owendo', berth: 'Quai 3', eta: -7, etd: -5, ops: 'Déchargement transformateurs' },
+    { ship: 'Barge tubulaires (démo)', ref: 'ART-26-0409', port: 'Port-Gentil', berth: 'Quai 3', eta: -2, etd: 1, ops: 'Déchargement tiges de forage' }
+  ];
   var SPO_ST = ['Brouillon', 'Envoyée', 'Confirmée', 'Soldée'];
   var supn = function (id) { var s = S.sup.filter(function (x) { return x.id === id; })[0]; return s ? s.name : '—'; };
   var navs = 0, S, view = 'dash', filt = { q: '', mode: '', step: '' };
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
-  function load() { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.dossiers && s.quotes && s.po && s.spo) return s; } catch (e) {} return clone(SEED); }
+  function load() { try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.dossiers && s.quotes && s.po && s.spo && s.jobs && s.ships && s.calls) return s; } catch (e) {} return clone(SEED); }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   S = load();
   var nf = function (n) { return Number(n).toLocaleString('fr-FR'); };
@@ -220,7 +239,7 @@
     return '<div class="sub-kpis">' + kpi('Véhicules et engins', F.length) + kpi('En mission', mis, Math.round(mis / F.length * 100) + ' % d\'utilisation') + kpi('Disponibles', F.filter(function (f) { return f.st === 0; }).length) + kpi('En maintenance', F.filter(function (f) { return f.st === 2; }).length, '', true) + '</div>' +
       '<div class="grid g3">' + F.map(function (f) {
         var c = f.st === 0 ? 't-ok' : f.st === 1 ? 't-acc' : 't-bad';
-        return '<div class="card"><h3>' + f.id + ' ' + tag(FLEET_ST[f.st], c) + '</h3><b>' + esc(f.name) + '</b><p style="color:var(--muted);margin:4px 0 14px">' + f.type + (f.doss ? ' · affecté à ' + f.doss : '') + '</p>' +
+        return '<div class="card"><h3>' + f.id + ' ' + tag(FLEET_ST[f.st], c) + '</h3><b>' + esc(f.name) + '</b><p style="color:var(--muted);margin:4px 0 14px">' + f.type + (f.doss ? ' · affecté à ' + f.doss : '') + '</p><p style="margin:-8px 0 12px;font-size:.84rem">📍 ' + esc(f.pos.place) + ' · <button class="linkbtn" data-geo="eq|' + f.id + '">Voir sur la carte</button></p>' +
           (f.st === 0 ? '<select data-assign="' + f.id + '" style="padding:9px;border:1px solid var(--line);border-radius:8px;width:100%"><option value="">Affecter à un dossier…</option>' + S.dossiers.filter(function (d) { return d.step < 5; }).map(function (d) { return '<option>' + d.ref + '</option>'; }).join('') + '</select>' : '') +
           (f.st === 1 ? '<button class="btn btn--ghost btn--sm" data-free="' + f.id + '">Mission terminée</button>' : '') + (f.st === 2 ? '<button class="btn btn--ghost btn--sm" data-free="' + f.id + '">Remise en service</button>' : '') + '</div>';
       }).join('') + '</div>';
@@ -281,8 +300,8 @@
   };
 
   M.offre = function () {
-    var mods = [['Dossiers de transit', 'Ouverture, étapes, historique, documents, par client et par bureau.'], ['Devis', 'Création, envoi, suivi des réponses, PDF aux couleurs d\'ART, conversion en dossier.'], ['Bons de commande', 'Commandes clients et commandes fournisseurs, avec PDF.'], ['Factures', 'Facturation depuis le dossier, TVA, suivi des encaissements, PDF.'], ['Documents', 'Proforma, packing list, bon de livraison, fiche dossier en un clic.'], ['Douane', 'Suivi des déclarations et estimation des droits et taxes.'], ['Flotte & manutention', 'Camions, chariots, grues : affectation aux dossiers, maintenance.'], ['Entrepôt', 'Stock par emplacement, durées de séjour, alertes.'], ['Fournisseurs', 'Armateurs, transporteurs, agents : commandes et engagements.'], ['Clients & portail', 'Fiches clients, encours, et portail de suivi pour vos clients.'], ['Tableau de bord', 'Courbes, indicateurs, alertes, parcours commercial.'], ['Exports', 'Excel/CSV des dossiers, factures, devis, stock.']];
-    var opts = [['Alertes automatiques', 'E-mail ou WhatsApp au client à chaque étape : arrivée, douane, livraison.'], ['Signature électronique', 'Devis, bons de commande et bons de livraison signés sur téléphone.'], ['Application chauffeurs', 'Preuve de livraison avec photo et signature depuis le terrain.'], ['Connexion aux outils existants', 'Reprise des données de suivi actuelles (dont Elyse Web) selon faisabilité.'], ['Assistant intelligent', 'Réponses aux clients à partir de leurs dossiers, 24 h/24.'], ['Version anglaise', 'Interface et documents bilingues FR / EN pour les clients de Houston.'], ['Droits et rôles', 'Accès par bureau et par fonction : exploitation, douane, comptabilité, direction.'], ['Sauvegardes et sécurité', 'Hébergement sécurisé, sauvegardes quotidiennes, journal des actions.']];
+    var mods = [['Dossiers de transit', 'Ouverture, étapes, historique, documents, par client et par bureau.'], ['Devis', 'Création, envoi, suivi des réponses, PDF aux couleurs d\'ART, conversion en dossier.'], ['Bons de commande', 'Commandes clients et commandes fournisseurs, avec PDF.'], ['Factures', 'Facturation depuis le dossier, TVA, suivi des encaissements, PDF.'], ['Documents', 'Proforma, packing list, bon de livraison, fiche dossier en un clic.'], ['Douane', 'Suivi des déclarations et estimation des droits et taxes.'], ['Flotte & manutention', 'Camions, chariots, grues : affectation aux dossiers, maintenance.'], ['Entrepôt', 'Stock par emplacement, durées de séjour, alertes.'], ['Positions & travaux', 'Carte du matériel, des navires et des chantiers (GPS), planning des interventions.'], ['Fournisseurs', 'Armateurs, transporteurs, agents : commandes et engagements.'], ['Clients & portail', 'Fiches clients, encours, et portail de suivi pour vos clients.'], ['Tableau de bord', 'Courbes, indicateurs, alertes, parcours commercial.'], ['Exports', 'Excel/CSV des dossiers, factures, devis, stock.']];
+    var opts = [['Alertes automatiques', 'E-mail ou WhatsApp au client à chaque étape : arrivée, douane, livraison.'], ['Signature électronique', 'Devis, bons de commande et bons de livraison signés sur téléphone.'], ['Géolocalisation du matériel', 'Balises GPS sur camions et engins, ou position envoyée depuis le téléphone du chauffeur.'], ['Application chauffeurs', 'Preuve de livraison avec photo et signature depuis le terrain.'], ['Connexion aux outils existants', 'Reprise des données de suivi actuelles (dont Elyse Web) selon faisabilité.'], ['Assistant intelligent', 'Réponses aux clients à partir de leurs dossiers, 24 h/24.'], ['Version anglaise', 'Interface et documents bilingues FR / EN pour les clients de Houston.'], ['Droits et rôles', 'Accès par bureau et par fonction : exploitation, douane, comptabilité, direction.'], ['Sauvegardes et sécurité', 'Hébergement sécurisé, sauvegardes quotidiennes, journal des actions.']];
     var card = function (x) { return '<div class="card"><h3 style="margin-bottom:6px">' + x[0] + '</h3><p style="color:var(--muted);font-size:.88rem">' + x[1] + '</p></div>'; };
     return '<div class="card" style="border-left:4px solid var(--acc)"><h3>Un outil de gestion complet pour ART</h3><p>De la demande de prix à l\'encaissement, une seule application pour les équipes de Port-Gentil et de Libreville : moins de ressaisies, des documents professionnels en un clic, un suivi clair pour la direction et pour les clients.</p></div>' +
       '<h3 class="ph">Modules inclus</h3><div class="grid g3 stack">' + mods.map(card).join('') + '</div>' +
@@ -291,13 +310,91 @@
       '<div class="card mt"><h3>À préciser avec ART</h3><p>Source des données de suivi, volume d\'utilisateurs, hébergement, modèles de documents existants, options retenues. Ces points fixent le calendrier et le budget : une proposition chiffrée est établie après un premier échange.</p></div>';
   };
 
-  var TITLES = { dash: 'Tableau de bord', dossiers: 'Dossiers de transit', pipeline: 'Suivi des expéditions', devis: 'Devis', bc: 'Bons de commande', documents: 'Documents', fournisseurs: 'Fournisseurs', offre: 'Notre offre', factures: 'Factures', douane: 'Douane', flotte: 'Flotte & manutention', entrepot: 'Entrepôt', clients: 'Clients', portail: 'Portail client' };
+  /* ---- Planning ---- */
+  var fmtOff = function (o) { var d = new Date(Date.now() + o * 864e5); return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2); };
+  var dayOff = function (v) { var t = new Date(); t.setHours(0, 0, 0, 0); var d = new Date(v + 'T00:00:00'); return isNaN(d) ? 0 : Math.round((d - t) / 864e5); };
+  function gantt(rows, from, n) {
+    var cols = 'grid-template-columns:190px repeat(' + n + ',34px)', dn = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    var head = '<div class="gt gt--h" style="' + cols + '"><div class="gl"></div>' + Array.apply(null, Array(n)).map(function (_, i) { var d = new Date(Date.now() + (from + i) * 864e5); return '<div class="gd' + (from + i === 0 ? ' gd--now' : '') + (d.getDay() % 6 === 0 ? ' gd--we' : '') + '"><small>' + dn[d.getDay()] + '</small>' + d.getDate() + '</div>'; }).join('') + '</div>';
+    var body = rows.map(function (r) {
+      return '<div class="gt" style="' + cols + '"><div class="gl"><b>' + esc(r.label) + '</b><small>' + esc(r.sub || '') + '</small></div><div class="gbg" style="grid-column:2/' + (n + 2) + '"></div><div class="gnow" style="grid-column:' + (0 - from + 2) + '"></div>' +
+        r.bars.map(function (b) { var s = Math.max(b.from, from), e = Math.min(b.to, from + n - 1); if (e < s) return ''; return '<div class="gbar ' + (b.cls || '') + '" style="grid-column:' + (s - from + 2) + '/span ' + (e - s + 1) + '" title="' + esc(b.title || b.text) + '">' + esc(b.text) + '</div>'; }).join('') + '</div>';
+    }).join('');
+    return '<div class="gantt">' + head + body + '</div>';
+  }
+  var callSt = function (c) { return c.etd < 0 ? 2 : c.eta > 0 ? 0 : 1; };
+  M.planning = function () {
+    var tab = filt.pl || 'escales';
+    var tabs = '<div class="bar"><div class="chips"><button data-pltab="escales"' + (tab === 'escales' ? ' class="is-on"' : '') + '>Escales de navires</button><button data-pltab="materiel"' + (tab === 'materiel' ? ' class="is-on"' : '') + '>Matériel & chantiers</button></div><span class="sp"></span>';
+    if (tab === 'escales') {
+      var C = S.calls.slice().sort(function (a, b) { return a.eta - b.eta; });
+      return '<div class="sub-kpis">' + kpi('Navires attendus', C.filter(function (c) { return callSt(c) === 0; }).length) + kpi('À quai', C.filter(function (c) { return callSt(c) === 1; }).length) + kpi('Partis (7 derniers jours)', C.filter(function (c) { return callSt(c) === 2; }).length) + kpi('Prochaine arrivée', (function () { var n = C.filter(function (c) { return c.eta > 0; })[0]; return n ? fmtOff(n.eta) : '—'; })()) + '</div>' +
+        tabs + '<button class="btn" data-act="newcall">+ Annoncer une escale</button></div>' +
+        '<div class="card"><h3>Planning des quais <small style="font-weight:400;color:var(--muted)">22 jours</small></h3>' + gantt(C.map(function (c) { return { label: c.ship.replace(' (démo)', ''), sub: c.port + ' · ' + c.berth, bars: [{ from: c.eta, to: c.etd, text: c.ref, cls: ['gbar--wait', 'gbar--on', 'gbar--done'][callSt(c)], title: c.ops }] }; }), -8, 22) + '</div>' +
+        '<div class="tw mt"><table><thead><tr><th>Navire</th><th>Dossier</th><th>Port / quai</th><th>ETA</th><th>ETD</th><th>Opérations</th><th>Statut</th></tr></thead><tbody>' +
+        C.map(function (c) { var st = callSt(c); return '<tr><td class="ref">' + esc(c.ship) + '</td><td>' + c.ref + '</td><td>' + c.port + ' · ' + c.berth + '</td><td>' + fmtOff(c.eta) + '</td><td>' + fmtOff(c.etd) + '</td><td>' + esc(c.ops) + '</td><td>' + tag(['Attendu', 'À quai', 'Parti'][st], ['t-warn', 't-acc', 't-ok'][st]) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+    }
+    var rows = S.fleet.map(function (f) { return { label: f.id + ' · ' + f.name, sub: f.type + ' · ' + FLEET_ST[f.st], bars: S.jobs.filter(function (j) { return j.equip.indexOf(f.id) > -1; }).map(function (j) { return { from: j.d0, to: j.d0 + j.dur - 1, text: j.title, cls: ['gbar--wait', 'gbar--on', 'gbar--done'][j.st], title: j.id + ' · ' + SITES[j.site][0] }; }).concat(f.st === 2 ? [{ from: -4, to: 2, text: 'Maintenance', cls: 'gbar--bad' }] : []) }; });
+    var free = S.jobs.filter(function (j) { return !j.equip.length; });
+    if (free.length) rows.push({ label: 'À affecter', sub: 'Chantiers sans matériel', bars: free.map(function (j) { return { from: j.d0, to: j.d0 + j.dur - 1, text: j.title, cls: 'gbar--wait', title: j.id }; }) });
+    return '<div class="sub-kpis">' + kpi('Chantiers planifiés', S.jobs.filter(function (j) { return j.st === 0; }).length) + kpi('En cours', S.jobs.filter(function (j) { return j.st === 1; }).length) + kpi('Terminés', S.jobs.filter(function (j) { return j.st === 2; }).length) + kpi('Matériel disponible', S.fleet.filter(function (f) { return f.st === 0; }).length) + '</div>' +
+      tabs + '<button class="btn" data-act="newjob">+ Nouveau chantier</button></div>' +
+      '<div class="card"><h3>Planning du matériel <small style="font-weight:400;color:var(--muted)">22 jours · orange : en cours · gris : planifié · vert : terminé</small></h3>' + gantt(rows, -6, 22) + '</div><p class="note">Les positions du matériel sont visibles sur la carte « Positions &amp; travaux ».</p>';
+  };
+  var EMO = { Camion: '🚛', Manutention: '🏗️', Levage: '🏗️', Léger: '🚙' };
+  var JOB_ST = ['Planifié', 'En cours', 'Terminé'];
+  var ago = function (f) { return f.st === 1 ? 'il y a < 1 min' : 'il y a 12 min'; };
+  M.carte = function () {
+    var fl = filt.cf || 'all', F = S.fleet, J = S.jobs;
+    var chip = function (k, t) { return '<button data-cf="' + k + '"' + (fl === k ? ' class="is-on"' : '') + '>' + t + '</button>'; };
+    var eq = F.map(function (f) { return '<div class="gi" data-geo="eq|' + f.id + '"><div><b>' + EMO[f.type] + ' ' + f.id + ' · ' + esc(f.name) + '</b><small>📍 ' + esc(f.pos.place) + ' · ' + (f.st === 1 ? Math.round(f.pos.sp) + ' km/h' : 'à l\'arrêt') + ' · ' + ago(f) + '</small></div>' + tag(FLEET_ST[f.st], f.st === 0 ? 't-ok' : f.st === 1 ? 't-acc' : 't-bad') + '</div>'; }).join('');
+    var sh = S.ships.map(function (s) { return '<div class="gi" data-geo="sh|' + s.ref + '"><div><b>🚢 ' + s.ref + '</b><small>' + esc(s.name) + ' · ' + s.st + '</small></div>' + tag(s.sp ? s.sp + ' nds' : 'À quai', 't-info') + '</div>'; }).join('');
+    var jb = J.map(function (j) { return '<div class="gi" data-geo="jb|' + j.id + '"><div><b>🛠 ' + j.id + ' · ' + esc(j.title) + '</b><small>📍 ' + SITES[j.site][0] + ' · ' + j.doss + (j.equip.length ? ' · ' + j.equip.join(', ') : ' · matériel à affecter') + '</small></div><div class="dacts">' + tag(JOB_ST[j.st], j.st === 1 ? 't-acc' : j.st === 2 ? 't-ok' : '') + (j.st === 0 ? '<button class="btn btn--sm" data-job="' + j.id + '|1">Démarrer</button>' : '') + (j.st === 1 ? '<button class="btn btn--ghost btn--sm" data-job="' + j.id + '|2">Terminer</button>' : '') + '</div></div>'; }).join('');
+    return '<div class="sub-kpis">' + kpi('Matériel géolocalisé', F.length + ' / ' + F.length, 'signal actif') + kpi('En mission', F.filter(function (f) { return f.st === 1; }).length) + kpi('Chantiers en cours', J.filter(function (j) { return j.st === 1; }).length) + kpi('Chantiers planifiés', J.filter(function (j) { return j.st === 0; }).length) + '</div>' +
+      '<div class="bar"><div class="chips">' + chip('all', 'Tout') + chip('eq', 'Matériel') + chip('sh', 'Navires') + chip('jb', 'Chantiers') + '</div><span class="sp"></span><button class="btn" data-act="newjob">+ Nouveau chantier</button></div>' +
+      '<div class="geo"><div class="geo__map" id="map"></div><div class="geo__list">' + (fl === 'all' || fl === 'eq' ? '<h4>Matériel</h4>' + eq : '') + (fl === 'all' || fl === 'sh' ? '<h4>Navires</h4>' + sh : '') + (fl === 'all' || fl === 'jb' ? '<h4>Chantiers & travaux</h4>' + jb : '') + '</div></div>' +
+      '<p class="note">Positions simulées pour la démonstration. En production : balises GPS sur les camions et engins, ou position envoyée depuis le téléphone du chauffeur.</p>';
+  };
+
+  /* ---- Carte (Leaflet) ---- */
+  var map = null, mk = {}, sim = null;
+  function destroyMap() { if (sim) { clearInterval(sim); sim = null; } if (map) { map.remove(); map = null; mk = {}; } }
+  function pin(e, cls) { return L.divIcon({ className: 'pin ' + cls, html: '<span>' + e + '</span>', iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -16] }); }
+  function popup(kind, id) {
+    if (kind === 'eq') { var f = S.fleet.filter(function (x) { return x.id === id; })[0]; return '<b>' + f.id + ' · ' + esc(f.name) + '</b><br>' + FLEET_ST[f.st] + (f.doss ? ' · ' + f.doss : '') + '<br>📍 ' + esc(f.pos.place); }
+    if (kind === 'sh') { var s = S.ships.filter(function (x) { return x.ref === id; })[0]; return '<b>' + s.ref + '</b><br>' + esc(s.name) + '<br>' + s.st; }
+    var j = S.jobs.filter(function (x) { return x.id === id; })[0]; return '<b>' + j.id + ' · ' + esc(j.title) + '</b><br>' + JOB_ST[j.st] + ' · ' + j.doss + '<br>📍 ' + SITES[j.site][0] + (j.equip.length ? '<br>Matériel : ' + j.equip.join(', ') : '');
+  }
+  function initMap() {
+    destroyMap(); var el = $('#map'); if (!el) return;
+    if (!window.L) { el.innerHTML = '<div class="empty" style="padding:30px">Carte indisponible (connexion requise).</div>'; return; }
+    var fl = filt.cf || 'all';
+    map = L.map(el, { scrollWheelZoom: false }).setView([-0.15, 9.0], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 18 }).addTo(map);
+    var pts = [];
+    if (fl === 'all' || fl === 'eq') S.fleet.forEach(function (f) { var m = L.marker([f.pos.lat, f.pos.lon], { icon: pin(EMO[f.type], f.st === 1 ? 'pin--on' : f.st === 2 ? 'pin--bad' : '') }).addTo(map).bindPopup(popup('eq', f.id)); mk['eq|' + f.id] = m; pts.push([f.pos.lat, f.pos.lon]); });
+    if (fl === 'all' || fl === 'sh') S.ships.forEach(function (s) { var m = L.marker([s.lat, s.lon], { icon: pin('🚢', 'pin--ship') }).addTo(map).bindPopup(popup('sh', s.ref)); mk['sh|' + s.ref] = m; pts.push([s.lat, s.lon]); });
+    if (fl === 'all' || fl === 'jb') S.jobs.forEach(function (j) { if (j.st === 2) return; var m = L.marker([SITES[j.site][1], SITES[j.site][2]], { icon: pin('🛠', 'pin--job'), zIndexOffset: -100 }).addTo(map).bindPopup(popup('jb', j.id)); mk['jb|' + j.id] = m; pts.push([SITES[j.site][1], SITES[j.site][2]]); });
+    if (pts.length > 1) map.fitBounds(pts, { padding: [30, 30], maxZoom: 9 });
+    if (filt.focus && mk[filt.focus]) { var k = filt.focus; filt.focus = null; setTimeout(function () { if (map && mk[k]) { map.setView(mk[k].getLatLng(), 13); mk[k].openPopup(); } }, 200); }
+    sim = setInterval(tick, 3500);
+  }
+  function tick() {
+    var changed = false;
+    S.fleet.forEach(function (f) { if (f.st !== 1) return; f.pos.lat += (Math.random() - .5) * 0.0012; f.pos.lon += (Math.random() - .5) * 0.0012; f.pos.sp = 12 + Math.random() * 30; if (mk['eq|' + f.id]) mk['eq|' + f.id].setLatLng([f.pos.lat, f.pos.lon]); changed = true; });
+    S.ships.forEach(function (s) { if (s.sp && s.lon < 8.45) { s.lon += 0.006; s.lat -= 0.0006; if (mk['sh|' + s.ref]) mk['sh|' + s.ref].setLatLng([s.lat, s.lon]); changed = true; } });
+    if (changed) save();
+  }
+  function focusGeo(key) { if (view !== 'carte') { filt.cf = 'all'; filt.focus = key; go('carte'); } else if (mk[key]) { map.setView(mk[key].getLatLng(), 13); mk[key].openPopup(); } }
+
+  var TITLES = { dash: 'Tableau de bord', dossiers: 'Dossiers de transit', pipeline: 'Suivi des expéditions', planning: 'Planning', carte: 'Positions & travaux', devis: 'Devis', bc: 'Bons de commande', documents: 'Documents', fournisseurs: 'Fournisseurs', offre: 'Notre offre', factures: 'Factures', douane: 'Douane', flotte: 'Flotte & manutention', entrepot: 'Entrepôt', clients: 'Clients', portail: 'Portail client' };
   function render() {
     $('#content').innerHTML = M[view]();
     $('#title').textContent = TITLES[view];
     $$('#menu button,#bottom button[data-m]').forEach(function (b) { b.classList.toggle('is-on', b.dataset.m === view); });
     $('#more').classList.toggle('is-on', ['dash', 'dossiers', 'devis', 'factures'].indexOf(view) < 0);
     $('#back').classList.toggle('show', view !== 'dash');
+    if (view === 'carte') initMap(); else destroyMap();
     $$('table').forEach(function (t) { var h = $$('th', t).map(function (x) { return x.textContent; }); $$('tbody tr', t).forEach(function (tr) { $$('td', tr).forEach(function (td, i) { if (h[i]) td.setAttribute('data-l', h[i]); }); }); });
     var q = $('#f-q'); if (q) q.addEventListener('input', function () { filt.q = q.value; var p = q.selectionStart; render(); var n = $('#f-q'); n.focus(); n.setSelectionRange(p, p); });
     var fm = $('#f-mode'); if (fm) fm.addEventListener('change', function () { filt.mode = fm.value; render(); });
@@ -406,7 +503,7 @@
 
   /* ---------- Actions ---------- */
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-open],[data-adv],[data-cu],[data-free],[data-out],[data-inv],[data-mkinv],[data-act],[data-close],[data-m],[data-pdfx],[data-bctab],[data-pos],[data-sps],[data-pdfi],[data-pdfq],[data-pdfd],[data-csv],[data-qs]');
+    var t = e.target.closest('[data-open],[data-adv],[data-cu],[data-free],[data-out],[data-inv],[data-mkinv],[data-act],[data-close],[data-m],[data-pltab],[data-geo],[data-job],[data-cf],[data-pdfx],[data-bctab],[data-pos],[data-sps],[data-pdfi],[data-pdfq],[data-pdfd],[data-csv],[data-qs]');
     if (!t) return;
     var D = t.dataset;
     if (D.close !== undefined) return closeAll();
@@ -434,6 +531,16 @@
       save(); render(); return;
     }
     if (D.pdfx) { var px = D.pdfx.split('|'); return pdfx(px[0], px[1]); }
+    if (D.pltab) { filt.pl = D.pltab; return render(); }
+    if (D.act === 'newcall') return newCall();
+    if (D.geo) return focusGeo(D.geo);
+    if (D.cf) { filt.cf = D.cf; return render(); }
+    if (D.job) {
+      var jp = D.job.split('|'), jo = S.jobs.filter(function (v) { return v.id === jp[0]; })[0], si = SITES[jo.site]; jo.st = Number(jp[1]);
+      jo.equip.forEach(function (id) { var f = S.fleet.filter(function (v) { return v.id === id; })[0]; if (!f) return; if (jo.st === 1) { f.st = 1; f.doss = jo.doss; f.pos = { lat: si[1] + (Math.random() - .5) * 0.0008, lon: si[2] + (Math.random() - .5) * 0.0008, place: si[0], sp: 0 }; } else { f.st = 0; f.doss = ''; } });
+      logAdd('Chantier ' + jo.id + ' : ' + JOB_ST[jo.st].toLowerCase()); save(); toast(jo.id + ' — ' + JOB_ST[jo.st]); render(); return;
+    }
+    if (D.act === 'newjob') return newJob();
     if (D.bctab) { filt.bc = D.bctab; return render(); }
     if (D.pos) {
       var po = S.po.filter(function (v) { return v.no === D.pos; })[0];
@@ -471,6 +578,22 @@
         var no = 'D-26-' + ('0000' + (++S.qseq)).slice(-4);
         S.quotes.unshift({ no: no, c: Number(fd.get('c')), obj: fd.get('obj') + ' — ' + fd.get('from') + ' → ' + fd.get('to'), mode: fd.get('mode'), from: fd.get('from'), to: fd.get('to'), lines: lines, st: 0, date: short() });
         logAdd('Devis ' + no + ' créé'); save(); toast('Devis ' + no + ' créé — téléchargez le PDF'); render();
+      });
+  }
+  function newCall() {
+    modal('<h3>Annoncer une escale</h3><label class="full">Navire<input name="ship" required placeholder="Nom du navire"></label>' +
+      '<label>Port<select name="port"><option>Port-Gentil</option><option>Owendo</option><option>Cap Lopez</option></select></label><label>Quai<input name="berth" value="Quai 1"></label>' +
+      '<label>ETA<input name="eta" type="date" required></label><label>ETD<input name="etd" type="date" required></label>' +
+      '<label>Dossier<select name="ref">' + S.dossiers.map(function (d) { return '<option>' + d.ref + '</option>'; }).join('') + '</select></label><label>Opérations<input name="ops" placeholder="Déchargement…"></label>' + cancel, function (fd) {
+        var a = dayOff(fd.get('eta')), b = Math.max(a, dayOff(fd.get('etd')));
+        S.calls.push({ ship: fd.get('ship'), ref: fd.get('ref'), port: fd.get('port'), berth: fd.get('berth'), eta: a, etd: b, ops: fd.get('ops') || '—' }); logAdd('Escale annoncée : ' + fd.get('ship')); save(); toast('Escale enregistrée'); render();
+      });
+  }
+  function newJob() {
+    modal('<h3>Nouveau chantier / intervention</h3><label class="full">Intitulé<input name="title" required placeholder="Ex. Levage de la structure acier"></label>' +
+      '<label>Lieu<select name="site">' + SITES.map(function (s, i) { return '<option value="' + i + '">' + s[0] + '</option>'; }).join('') + '</select></label><label>Dossier<select name="doss">' + S.dossiers.map(function (d) { return '<option>' + d.ref + '</option>'; }).join('') + '</select></label>' +
+      '<label>Début<input name="d0" type="date" required></label><label>Durée (jours)<input name="dur" type="number" min="1" value="2"></label><label class="full">Matériel à affecter<select name="eq"><option value="">À affecter plus tard</option>' + S.fleet.filter(function (f) { return f.st === 0; }).map(function (f) { return '<option value="' + f.id + '">' + f.id + ' — ' + esc(f.name) + '</option>'; }).join('') + '</select></label>' + cancel, function (fd) {
+        var id = 'TR-0' + (++S.jseq); S.jobs.unshift({ id: id, title: fd.get('title'), site: Number(fd.get('site')), doss: fd.get('doss'), equip: fd.get('eq') ? [fd.get('eq')] : [], st: 0, d0: dayOff(fd.get('d0')), dur: Number(fd.get('dur')) || 1 }); logAdd('Chantier ' + id + ' planifié'); save(); toast(id + ' planifié'); render();
       });
   }
   function newPo() {

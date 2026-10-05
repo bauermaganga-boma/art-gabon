@@ -170,3 +170,35 @@ tbody tr.click{cursor:pointer}tbody tr.click:hover td{background:#fafbfc}
   .board{grid-template-columns:repeat(6,78%);scroll-snap-type:x mandatory}.col{scroll-snap-align:start}
 }
 @media (max-width:420px){.grid.g4,.sub-kpis{grid-template-columns:1fr 1fr}.kpi{padding:14px}.card{padding:16px}.rings{gap:10px}}
+
+/* ---- carte & positions ---- */
+.linkbtn{background:none;border:0;color:var(--acc-d);font-weight:600;text-decoration:underline;cursor:pointer;padding:0}
+.geo{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;align-items:start}
+.geo__map{height:600px;border-radius:14px;border:1px solid var(--line);overflow:hidden;background:#e9ebef;z-index:1}
+.geo__list{background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px 14px 14px;max-height:600px;overflow:auto}
+.geo__list h4{font:600 .74rem Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 6px}
+.gi{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:.86rem}
+.gi:hover{background:#fafbfc}.gi small{display:block;color:var(--muted)}
+.pin span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#fff;border:3px solid #8d95a3;font-size:18px;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.pin--on span{border-color:var(--acc)}.pin--bad span{border-color:var(--bad)}.pin--ship span{border-color:var(--blue)}.pin--job span{border-color:var(--ink);background:#fff7e6}
+@media (max-width:1100px){.geo{grid-template-columns:1fr}.geo__list{max-height:none}}
+@media (max-width:860px){.geo__map{height:340px}.gi{align-items:flex-start;flex-wrap:wrap}}
+
+/* ---- planning (Gantt) ---- */
+.gantt{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+.gt{display:grid;grid-auto-rows:44px;border-bottom:1px solid var(--line);position:relative;min-width:max-content}
+.gt:last-child{border-bottom:0}
+.gt--h{grid-auto-rows:42px;background:#fafbfc;position:sticky;top:0}
+.gl{position:sticky;left:0;z-index:3;background:#fff;padding:5px 12px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--line);font-size:.8rem;line-height:1.25;grid-row:1;grid-column:1;overflow:hidden}
+.gt--h .gl{background:#fafbfc}
+.gl b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gl small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;border-right:1px solid #eef0f3;grid-row:1}
+.gd small{font-weight:500;color:var(--muted);font-size:.64rem}
+.gd--we{background:#f4f5f7}.gd--now{background:var(--acc);color:#fff}.gd--now small{color:#ffe1cf}
+.gbg{grid-row:1;background:repeating-linear-gradient(90deg,transparent 0 33px,#eef0f3 33px 34px)}
+.gnow{grid-row:1;background:rgba(242,106,27,.1);border-left:2px solid var(--acc);border-right:2px solid var(--acc)}
+.gbar{grid-row:1;align-self:center;margin:0 2px;height:26px;border-radius:7px;padding:0 8px;font-size:.74rem;font-weight:600;color:#fff;line-height:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.gbar--on{background:var(--acc)}.gbar--wait{background:#8d95a3}.gbar--done{background:var(--ok)}.gbar--bad{background:var(--bad)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line);background:#fff;padding:8px 15px;border-radius:99px;cursor:pointer;font-weight:600;font-size:.84rem;color:var(--muted)}
+.chips .is-on{background:var(--ink);color:#fff;border-color:var(--ink)}
