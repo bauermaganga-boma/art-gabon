@@ -126,7 +126,7 @@ h2{font-size:clamp(1.65rem,3.2vw,2.4rem);margin-bottom:14px;max-width:20em}
   .gallery{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr;gap:34px}
 }
 @media (max-width:760px){
-  .burger{display:block}.header__cta{display:none}
+  .burger{display:block;margin-left:0}.header__cta{margin-left:auto;padding:8px 14px;font-size:.82rem}.brand img{height:36px}.header{gap:12px}
   .nav{position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;background:#fff;padding:6px 20px 18px;border-bottom:1px solid var(--line);visibility:hidden;opacity:0;transform:translateY(-8px);transition:.25s;margin:0}
   .nav.open{visibility:visible;opacity:1;transform:none}
   .nav a{padding:13px 0;border-bottom:1px solid var(--line)}

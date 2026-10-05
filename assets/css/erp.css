@@ -107,3 +107,66 @@ tbody tr.click{cursor:pointer}tbody tr.click:hover td{background:#fafbfc}
   .modal__box{grid-template-columns:1fr}
   .g4{grid-template-columns:1fr 1fr}
 }
+
+/* ---- v3 : graphiques, retour, mobile ---- */
+.back{display:none;align-items:center;gap:6px;background:var(--bg);border:0;border-radius:9px;padding:8px 12px;font-weight:600;cursor:pointer}
+.back.show{display:inline-flex}
+.side__bg{display:none}
+.bottom{display:none}
+.chart{width:100%;height:auto;display:block}
+.chart text{font:11px Inter,sans-serif;fill:#6b7482}
+.chart .v{font-weight:700;fill:#1f2630}
+.hb{display:grid;gap:12px}
+.hb div{display:grid;grid-template-columns:130px 1fr auto;gap:10px;align-items:center;font-size:.84rem}
+.hb .prog{height:10px}.hb b{font-variant-numeric:tabular-nums}
+.rings{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:18px}
+.ring{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;align-items:center;gap:16px}
+.ring__c{width:78px;height:78px;border-radius:50%;flex:none;position:relative}
+.ring__c::after{content:"";position:absolute;inset:9px;background:#fff;border-radius:50%}
+.ring__c b{position:absolute;inset:0;display:grid;place-items:center;z-index:1;font:700 .95rem Sora,sans-serif}
+.ring span{font-size:.82rem;color:var(--muted);line-height:1.3}
+.mt{margin-top:18px}
+.sub-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.dacts{display:flex;gap:6px;flex-wrap:wrap}
+.pdf{background:#fff;color:var(--acc-d);border:1px solid var(--acc);border-radius:8px;padding:5px 10px;font-weight:600;font-size:.78rem;cursor:pointer;white-space:nowrap}
+.pdf:hover{background:var(--acc-l)}
+.lines{grid-column:1/-1;display:grid;gap:8px}
+.lines .ln{display:grid;grid-template-columns:3fr 70px 1.3fr;gap:8px}
+.pagehead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+
+@media (max-width:1100px){.rings,.sub-kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:860px){
+  .back.show{display:inline-flex}
+  .back span{display:none}
+  .menu-btn{display:none}
+  .side__bg{display:block;position:fixed;inset:0;background:rgba(15,19,24,.5);z-index:35;opacity:0;pointer-events:none;transition:.25s}
+  .side.open+.side__bg{opacity:1;pointer-events:auto}
+  .side{z-index:40}
+  .bottom{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .bottom button{background:none;border:0;padding:8px 2px 7px;font-size:.68rem;font-weight:600;color:var(--muted);display:grid;justify-items:center;gap:1px;cursor:pointer}
+  .bottom i{font-style:normal;font-size:1.15rem}
+  .bottom .is-on{color:var(--acc)}
+  .content{padding-bottom:90px}
+  .top h1{font-size:1.05rem}
+  .top{gap:10px}
+  .grid.g4,.g3,.g2,.rings,.sub-kpis{grid-template-columns:1fr 1fr}
+  .g2,.g3.stack{grid-template-columns:1fr}
+  .rings{grid-template-columns:1fr 1fr}.ring{flex-direction:column;text-align:center;padding:14px}
+  .kpi b{font-size:1.3rem}
+  .bar input{min-width:0;width:100%}.bar select{flex:1}
+  .drawer__panel{padding:18px}
+  .hb div{grid-template-columns:95px 1fr auto}
+  /* tableaux -> cartes */
+  .tw{border:0;background:none;overflow:visible}
+  table,thead,tbody,tr,td{display:block;min-width:0}
+  thead{display:none}
+  tbody tr{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:8px 14px}
+  td{display:flex;justify-content:space-between;gap:14px;border:0;padding:6px 0;text-align:right}
+  td::before{content:attr(data-l);color:var(--muted);font-size:.74rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;text-align:left;flex:none}
+  td.num{text-align:right}
+  td:first-child{font-size:1rem;padding-top:4px}
+  tr:last-child td{border-bottom:0}
+  td:empty{display:none}
+  .board{grid-template-columns:repeat(6,78%);scroll-snap-type:x mandatory}.col{scroll-snap-align:start}
+}
+@media (max-width:420px){.grid.g4,.sub-kpis{grid-template-columns:1fr 1fr}.kpi{padding:14px}.card{padding:16px}.rings{gap:10px}}

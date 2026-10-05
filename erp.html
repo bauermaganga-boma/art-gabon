@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ART Connect — ERP transit & logistique (démo)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Outil de gestion ART — transit & logistique (démo)</title>
 <meta name="theme-color" content="#14181f">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,23 +14,26 @@
 <body>
 <div class="erp" id="erp">
   <aside class="side" id="side">
-    <a class="side__brand" href="index.html" title="Retour au site"><span><img src="assets/img/logo.png" alt="ART"></span><div><b>ART Connect</b><small>ERP transit &amp; logistique</small></div></a>
+    <a class="side__brand" href="index.html" title="Retour au site"><span><img src="assets/img/logo.png" alt="ART"></span><div><b>Outil de gestion</b><small>Action Rapide Transit</small></div></a>
     <nav class="side__nav" id="menu">
       <button data-m="dash" class="is-on"><i>▦</i>Tableau de bord</button>
       <button data-m="dossiers"><i>▤</i>Dossiers de transit</button>
       <button data-m="pipeline"><i>◫</i>Suivi des expéditions</button>
+      <button data-m="devis"><i>✎</i>Devis</button>
+      <button data-m="factures"><i>€</i>Factures</button>
       <button data-m="douane"><i>⚖</i>Douane</button>
       <button data-m="flotte"><i>⛟</i>Flotte &amp; manutention</button>
       <button data-m="entrepot"><i>▣</i>Entrepôt</button>
-      <button data-m="factures"><i>€</i>Facturation</button>
       <button data-m="clients"><i>☺</i>Clients</button>
       <button data-m="portail"><i>↗</i>Portail client</button>
     </nav>
-    <div class="side__foot"><a href="index.html">← Retour au site</a><button id="reset">Réinitialiser la démo</button></div>
+    <div class="side__foot"><a href="index.html">← Retour au site ART</a><button id="reset">Réinitialiser la démo</button></div>
   </aside>
+  <div class="side__bg" id="side-bg"></div>
 
   <div class="main">
     <header class="top">
+      <button class="back" id="back" aria-label="Retour">←<span>Retour</span></button>
       <button class="menu-btn" id="menu-btn" aria-label="Menu">☰</button>
       <h1 id="title">Tableau de bord</h1>
       <div class="top__right"><span class="demo-pill">Démo · données fictives</span><span class="avatar" title="Utilisateur démo">PG</span></div>
@@ -38,6 +41,14 @@
     <section class="content" id="content"></section>
   </div>
 </div>
+
+<nav class="bottom" id="bottom" aria-label="Navigation rapide">
+  <button data-m="dash"><i>▦</i>Accueil</button>
+  <button data-m="dossiers"><i>▤</i>Dossiers</button>
+  <button data-m="devis"><i>✎</i>Devis</button>
+  <button data-m="factures"><i>€</i>Factures</button>
+  <button id="more"><i>⋯</i>Plus</button>
+</nav>
 
 <div class="drawer" id="drawer" hidden>
   <div class="drawer__bg" data-close></div>
@@ -48,6 +59,7 @@
   <form class="modal__box" id="modal-form"></form>
 </div>
 <div class="toast" id="toast" hidden></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="assets/js/erp.js"></script>
 </body>
 </html>
